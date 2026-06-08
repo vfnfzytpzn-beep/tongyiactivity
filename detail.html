@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>活动详情 - 通义大模型生态赋能中心</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">
+            <div class="logo-icon">通</div>
+            <span class="logo-text">通义大模型生态赋能中心</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">活动首页</a>
+            <a href="publish.html">发布活动</a>
+            <a href="admin.html">后台管理</a>
+        </div>
+    </nav>
+
+    <!-- 活动详情头部 -->
+    <section class="detail-header" id="detailHeader">
+        <div class="container">
+            <h1 id="eventTitle">加载中...</h1>
+            <div class="detail-meta" id="eventMeta"></div>
+        </div>
+    </section>
+
+    <!-- 活动详情内容 -->
+    <section class="detail-content">
+        <div class="container">
+            <div class="detail-body">
+                <!-- 封面图 -->
+                <div id="coverSection" style="display:none; margin-bottom:30px;">
+                    <img id="eventCover" src="" alt="活动封面" style="width:100%; max-height:400px; object-fit:cover; border-radius:8px;">
+                </div>
+
+                <!-- 活动信息 -->
+                <h2>活动详情</h2>
+                <div class="desc" id="eventDesc"></div>
+
+                <!-- 活动素材图 -->
+                <div id="gallerySection" style="display:none; margin-top:30px;">
+                    <h2 style="margin-top:30px;">活动素材</h2>
+                    <div class="detail-gallery" id="eventGallery"></div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div style="margin-top:40px; display:flex; gap:12px;">
+                    <a href="index.html" class="btn btn-outline">返回首页</a>
+                    <button class="btn btn-primary" id="signupBtn" onclick="handleSignup()">立即报名</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 通义大模型生态赋能中心 | 活动资讯平台</p>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        function loadEventDetail() {
+            const id = Utils.getUrlParam('id');
+            if (!id) {
+                document.getElementById('eventTitle').textContent = '活动不存在';
+                return;
+            }
+
+            const event = EventManager.getById(id);
+            if (!event) {
+                document.getElementById('eventTitle').textContent = '活动不存在';
+                document.getElementById('eventDesc').textContent = '该活动可能已被删除或链接无效。';
+                return;
+            }
+
+            // 设置页面标题
+            document.title = `${event.title} - 通义大模型生态赋能中心`;
+
+            // 渲染头部
+            document.getElementById('eventTitle').textContent = event.title;
+            document.getElementById('eventMeta').innerHTML = `
+                <span>📅 ${event.date} ${event.time || ''}</span>
+                <span>📍 ${event.location}</span>
+                <span>🏷️ ${event.category || '其他'}</span>
+                <span>👤 ${event.organizer || '通义大模型生态赋能中心'}</span>
+                <span style="background:${event.status === 'active' ? 'rgba(16,185,129,0.2)' : 'rgba(156,163,175,0.2)'}; padding:3px 12px; border-radius:20px;">
+                    ${Utils.getStatusText(event.status)}
+                </span>
+            `;
+
+            // 渲染描述
+            document.getElementById('eventDesc').textContent = event.description || '暂无详细描述';
+
+            // 渲染封面
+            if (event.cover) {
+                document.getElementById('coverSection').style.display = 'block';
+                document.getElementById('eventCover').src = event.cover;
+            }
+
+            // 渲染图片素材
+            if (event.images && event.images.length > 0) {
+                document.getElementById('gallerySection').style.display = 'block';
+                document.getElementById('eventGallery').innerHTML = event.images.map(img => 
+                    `<img src="${img}" alt="活动素材" onclick="previewImage(this.src)">`
+                ).join('');
+            }
+
+            // 设置报名按钮状态
+            if (event.status === 'ended') {
+                const btn = document.getElementById('signupBtn');
+                btn.textContent = '活动已结束';
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            }
+        }
+
+        function handleSignup() {
+            Utils.showToast('报名功能演示 - 报名成功！', 'success');
+        }
+
+        function previewImage(src) {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+            overlay.innerHTML = `<img src="${src}" style="max-width:90%;max-height:90%;border-radius:8px;">`;
+            overlay.onclick = () => overlay.remove();
+            document.body.appendChild(overlay);
+        }
+
+        loadEventDetail();
+    </script>
+</body>
+</html>
