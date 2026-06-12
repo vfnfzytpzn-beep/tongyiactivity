@@ -135,7 +135,8 @@
                 return;
             }
 
-            coverBase64 = await Utils.fileToBase64(file);
+            // 使用压缩避免localStorage超限
+            coverBase64 = await Utils.compressImage(file, { maxSize: 1280, quality: 0.7 });
             document.getElementById('coverPreview').innerHTML = `
                 <div class="preview-item">
                     <img src="${coverBase64}" alt="封面预览">
@@ -156,15 +157,17 @@
             const files = Array.from(input.files);
             
             for (const file of files) {
-                if (file.size > 2 * 1024 * 1024) {
-                    Utils.showToast(`${file.name} 超过2MB，已跳过`, 'error');
+                if (file.size > 5 * 1024 * 1024) {
+                    Utils.showToast(`${file.name} 超过5MB，已跳过`, 'error');
                     continue;
                 }
-                const base64 = await Utils.fileToBase64(file);
+                // 压缩以减小Base64体积
+                const base64 = await Utils.compressImage(file, { maxSize: 1024, quality: 0.65 });
                 imagesBase64.push(base64);
             }
 
             renderImagesPreview();
+            input.value = '';
         }
 
         function renderImagesPreview() {
@@ -213,7 +216,11 @@
                 return;
             }
 
-            EventManager.add(eventData);
+            const result = EventManager.add(eventData);
+            if (!result.success) {
+                Utils.showToast(result.message || '发布失败', 'error');
+                return;
+            }
             Utils.showToast('活动发布成功！');
 
             setTimeout(() => {

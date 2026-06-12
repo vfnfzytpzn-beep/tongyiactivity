@@ -253,7 +253,7 @@
         async function handleEditCoverUpload(input) {
             const file = input.files[0];
             if (!file) return;
-            editCoverBase64 = await Utils.fileToBase64(file);
+            editCoverBase64 = await Utils.compressImage(file, { maxSize: 1280, quality: 0.7 });
             document.getElementById('editCoverPreview').innerHTML = `
                 <div class="preview-item">
                     <img src="${editCoverBase64}" alt="封面">
@@ -273,11 +273,12 @@
         async function handleEditImagesUpload(input) {
             const files = Array.from(input.files);
             for (const file of files) {
-                if (file.size > 2 * 1024 * 1024) continue;
-                const base64 = await Utils.fileToBase64(file);
+                if (file.size > 5 * 1024 * 1024) continue;
+                const base64 = await Utils.compressImage(file, { maxSize: 1024, quality: 0.65 });
                 editImagesBase64.push(base64);
             }
             renderEditImagesPreview();
+            input.value = '';
         }
 
         function renderEditImagesPreview() {
@@ -313,7 +314,11 @@
                 images: editImagesBase64
             };
 
-            EventManager.update(id, updatedData);
+            const result = EventManager.update(id, updatedData);
+            if (!result.success) {
+                Utils.showToast(result.message || '保存失败', 'error');
+                return;
+            }
             closeEditModal();
             renderAdminTable();
             Utils.showToast('活动已更新成功！');
